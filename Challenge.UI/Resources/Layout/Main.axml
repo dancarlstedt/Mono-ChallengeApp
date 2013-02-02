@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:minWidth="25px"
+    android:minHeight="25px">
+    <EditText
+        android:id="@+id/customer_id"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/enter_customer_id"
+        android:numeric="integer"
+        android:maxLength="6"
+        android:inputType="number" />
+    <Button
+        android:id="@+id/datePicker"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/pick_date" />
+    <ImageView
+        android:id="@+id/image_viewer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <ImageButton
+        android:src="@android:drawable/ic_menu_camera"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/image_button" />
+    <Button
+        android:text="@string/submit_button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/submit_button" />
+    <ImageView
+        android:src="@android:drawable/ic_menu_gallery"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:scaleType="fitCenter"
+        android:id="@+id/image_viewer" />
+</LinearLayout>

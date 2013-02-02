@@ -1,0 +1,14 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Challenge.Core\Components\CustomerComponent.cs">
+    <Files>
+      <File FileName="Challenge.Core\Components\CustomerComponent.cs" Line="9" Column="53" />
+      <File FileName="c:\Git\AndriodChallenge\Challenge.UI\HomeScreen.cs" Line="94" Column="23" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.Challenge.UI AndroidDeviceId-Debug="emulator-5554" />
+</Properties>

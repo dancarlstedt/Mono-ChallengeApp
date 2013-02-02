@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="enter_customer_id">Enter Customer ID</string>
+    <string name="pick_date">Enter a date</string>
+    <string name="take_a_picture">Take a picture</string>
+    <string name="ApplicationName">Customer Image Capture</string>
+    <string name="submit_button">Submit</string>
+     <string name="library_name">Core</string>
+</resources>
