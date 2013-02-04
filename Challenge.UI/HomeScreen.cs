@@ -1,29 +1,40 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
+using Android.Graphics;
 using Android.Provider;
 using Android.Runtime;
+using Android.Util;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
 
 using Challenge.Core;
 
-using Java.IO;
+using Java.Nio;
+
+using File = Java.IO.File;
+using IOException = Java.IO.IOException;
+using Uri = Android.Net.Uri;
 
 namespace Challenge.UI
 {
     [Activity(Label = "Image Capture", MainLauncher = true, Icon = "@drawable/icon")]
     public class HomeScreen : Activity
     {
-        private File _file;
+        private string _imagePath;
+
+        private Bitmap _imageBitmap;
 
         private const int ImageCaptureRequestCode = 1;
+
+        private const string ImagePathKey = "Image_URI";
 
         private Button DateButton
         {
@@ -53,31 +64,17 @@ namespace Challenge.UI
         {
             base.OnCreate(bundle);
 
+            if (bundle != null && bundle.ContainsKey(ImagePathKey))
+            {
+                _imagePath = bundle.GetString(ImagePathKey);
+            }
+
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
 
             var captureImageButton = FindViewById<ImageButton>(Resource.Id.image_button);
             captureImageButton.Click += (x, y) =>
                 {
-
-                    //var dir = new Java.IO.File(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryPictures), Guid.NewGuid().ToString());
-
-                    //if (!dir.Exists())
-                    //{
-                    //    dir.Mkdirs();
-                    //}
-
-                    //_file = new Java.IO.File(dir, String.Format("myPhoto{0}.jpg", Guid.NewGuid()));
-
-                    //var uri = Android.Net.Uri.FromFile(_file);
-                    //Toast toad = Toast.MakeText(this, uri.ToString(), ToastLength.Long);
-                    //toad.Show();
-
-                    //var imageIntent = new Intent(MediaStore.ActionImageCapture);
-
-                    //imageIntent.PutExtra(MediaStore.ExtraOutput, uri);
-                    //imageIntent.AddFlags(ActivityFlags.SingleTop);
-                    //StartActivityForResult(imageIntent, ImageCaptureRequestCode);
                     CaptureImageButton();
                 };
 
@@ -108,7 +105,7 @@ namespace Challenge.UI
         private void CaptureImageButton()
         {
             var intent = new Intent(MediaStore.ActionImageCapture);
-            var availableActivities = this.PackageManager.QueryIntentActivities(intent, PackageInfoFlags.MatchDefaultOnly);
+            var availableActivities = PackageManager.QueryIntentActivities(intent, PackageInfoFlags.MatchDefaultOnly);
 
             if (availableActivities != null && availableActivities.Count > 0)
             {
@@ -121,11 +118,20 @@ namespace Challenge.UI
                     dir.Mkdirs();
                 }
 
-                _file = new Java.IO.File(dir, String.Format("myPhoto{0}.jpg", Guid.NewGuid()));
+                var file = new Java.IO.File(dir, String.Format("myPhoto{0}.jpg", Guid.NewGuid()));
+                var uri = Android.Net.Uri.FromFile(file);
+                _imagePath = file.AbsolutePath;
+                intent.PutExtra(MediaStore.ExtraOutput, uri);
+                StartActivityForResult(intent, ImageCaptureRequestCode);
 
-                intent.PutExtra(MediaStore.ExtraOutput, Android.Net.Uri.FromFile(_file));
-                StartActivityForResult(intent, 0);
+
             }
+        }
+
+        protected override void OnSaveInstanceState(Bundle outState)
+        {
+            base.OnSaveInstanceState(outState);
+            outState.PutString(ImagePathKey, _imagePath);
         }
 
         private void OnCompletedAnsycStuff(Task<string[]> task, ProgressDialog dialog)
@@ -157,11 +163,19 @@ namespace Challenge.UI
 
         private ImageCaptureEntity GetCaptureEntity()
         {
+            byte[] imageBytes;
+            using (var stream = new MemoryStream())
+            {
+                _imageBitmap.Compress(
+                    Bitmap.CompressFormat.Png, 100, stream);
+                imageBytes = stream.ToArray();
+            }
+
             return new ImageCaptureEntity
             {
                 Id = CustomerIdEditText.Text,
                 Date = DateTime.Parse(DateButton.Text),
-                Image = null
+                Image = imageBytes
             };
         }
 
@@ -171,30 +185,32 @@ namespace Challenge.UI
             dateButton.Text = e.Date.ToShortDateString();
         }
 
+        public void DecodeImage()
+        {
+            // Get the dimensions of the bitmap
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.InJustDecodeBounds = true;
+            BitmapFactory.DecodeFile(_imagePath, options);
+            int photoW = options.OutWidth;
+            int photoH = options.OutHeight;
+
+            // Decode the image file into a Bitmap sized to fill the View
+            options.InJustDecodeBounds = false;
+            options.InSampleSize = 2;
+            options.InPurgeable = true;
+
+            _imageBitmap = BitmapFactory.DecodeFile(_imagePath, options);
+            ImageViewer.SetImageBitmap(_imageBitmap);
+        }
+
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
         {
-            //base.OnActivityResult(requestCode, resultCode, data);
-            //if (requestCode == ImageCaptureRequestCode && resultCode == Result.Ok)
-            //{
-            //    var dataUri = _file.ToURI()
-            //                       .ToString();
-            //    ImageViewer.SetImageURI(Android.Net.Uri.Parse(dataUri));
-            //}
-
             base.OnActivityResult(requestCode, resultCode, data);
-            var imageView = ImageViewer;
-
-            // make it available in the gallery
-            var mediaScanIntent =
-                new Intent(Intent.ActionMediaScannerScanFile);
-            var contentUri = Android.Net.Uri.FromFile(_file);
-            mediaScanIntent.SetData(contentUri);
-            this.SendBroadcast(mediaScanIntent);
-
-            // display in ImageView
-            var bitmap = MediaStore.Images.Media.GetBitmap(ContentResolver, contentUri);
-            imageView.SetImageBitmap(bitmap);
-            bitmap.Dispose();
+            if (requestCode == ImageCaptureRequestCode
+                && resultCode == Result.Ok)
+            {
+                DecodeImage();
+            }
         }
     }
 }

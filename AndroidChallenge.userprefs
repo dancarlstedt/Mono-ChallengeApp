@@ -1,14 +1,17 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Challenge.Core\Components\CustomerComponent.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Challenge.UI\HomeScreen.cs">
     <Files>
-      <File FileName="Challenge.Core\Components\CustomerComponent.cs" Line="9" Column="53" />
-      <File FileName="c:\Git\AndriodChallenge\Challenge.UI\HomeScreen.cs" Line="94" Column="23" />
+      <File FileName="Challenge.UI\HomeScreen.cs" Line="153" Column="45" />
+      <File FileName="Challenge.Core\Components\CustomerComponent.cs" Line="18" Column="8" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="C:\Git\Mono-ChallengeApp\Challenge.Core\Components\CustomerComponent.cs" line="18" />
+      <Breakpoint file="C:\Git\Mono-ChallengeApp\Challenge.UI\HomeScreen.cs" line="174" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.ItemProperties.Challenge.UI AndroidDeviceId-Debug="emulator-5554" />
+  <MonoDevelop.Ide.ItemProperties.Challenge.UI AndroidDeviceId-Debug="0A3D26AD0901C00F" />
 </Properties>
