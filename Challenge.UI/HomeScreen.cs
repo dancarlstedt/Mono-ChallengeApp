@@ -163,12 +163,16 @@ namespace Challenge.UI
 
         private ImageCaptureEntity GetCaptureEntity()
         {
-            byte[] imageBytes;
-            using (var stream = new MemoryStream())
+            byte[] imageBytes = null;
+            if (_imageBitmap != null)
             {
-                _imageBitmap.Compress(
-                    Bitmap.CompressFormat.Png, 100, stream);
-                imageBytes = stream.ToArray();
+
+                using (var stream = new MemoryStream())
+                {
+                    _imageBitmap.Compress(
+                        Bitmap.CompressFormat.Png, 100, stream);
+                    imageBytes = stream.ToArray();
+                }
             }
 
             return new ImageCaptureEntity
