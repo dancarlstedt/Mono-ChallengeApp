@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 using RestSharp;
 
@@ -32,21 +33,23 @@ namespace Challenge.Core.Repository
             }
 
             var header = response.Headers.FirstOrDefault(x => x.Name == "Location");
-            return header != null ? header.Name : string.Empty;
+            return header != null ? header.Value as string : string.Empty;
         }
 
-        public string[] Get(string location)
+        public List<String> Get(string location)
         {
             var client = new RestClient(location);
             var request = new RestRequest(Method.GET);
-            var response = client.Execute<LocationResult>(request);
+            request.RequestFormat = DataFormat.Xml;
+
+            var response = client.Execute<List<string>>(request);
 
             if (response.Data == null)
             {
                 throw new Exception(response.Content);
             }
 
-            return response.Data.Answers;
+            return response.Data;
         }
     }
 }

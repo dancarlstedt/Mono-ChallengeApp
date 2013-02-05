@@ -100,9 +100,10 @@ namespace Challenge.Core.Tests
 
             var locationClient = new RestClient(location.Value as string);
             var locationRequest = new RestRequest(Method.GET);
+             
             //locationRequest.AddUrlSegment(CustId, "101010");
 
-            var locationResponse = locationClient.Execute(locationRequest);
+            var locationResponse = locationClient.Execute<System.Collections.Generic.List<string>>(locationRequest);
             Assert.IsNotNull(locationResponse);
         }
 

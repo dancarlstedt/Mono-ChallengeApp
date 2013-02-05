@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Globalization;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,31 +9,23 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
 using Android.Provider;
-using Android.Runtime;
-using Android.Util;
-using Android.Views;
 using Android.Widget;
 using Android.OS;
 
 using Challenge.Core;
 
-using Java.Nio;
+using JavaFile = Java.IO.File;
+using AndroidUri = Android.Net.Uri;
 
-using File = Java.IO.File;
-using IOException = Java.IO.IOException;
-using Uri = Android.Net.Uri;
-
-namespace Challenge.UI
+namespace Challenge.UI.Screens
 {
     [Activity(Label = "Image Capture", MainLauncher = true, Icon = "@drawable/icon")]
     public class HomeScreen : Activity
     {
         private string _imagePath;
-
         private Bitmap _imageBitmap;
 
         private const int ImageCaptureRequestCode = 1;
-
         private const string ImagePathKey = "Image_URI";
 
         private Button DateButton
@@ -75,7 +67,7 @@ namespace Challenge.UI
             var captureImageButton = FindViewById<ImageButton>(Resource.Id.image_button);
             captureImageButton.Click += (x, y) =>
                 {
-                    CaptureImageButton();
+                    CaptureImage();
                 };
 
             DateButton.Text = DateTime.Today.ToShortDateString();
@@ -97,35 +89,9 @@ namespace Challenge.UI
                         var answers = new CustomerComponent().Submit(GetCaptureEntity());
                         return answers;
                     })
-                    .ContinueWith(result => OnCompletedAnsycStuff(result, progress));
+                    .ContinueWith(result => OnCompleteAsnycSubmit(result, progress));
                 progress.Show();
             };
-        }
-
-        private void CaptureImageButton()
-        {
-            var intent = new Intent(MediaStore.ActionImageCapture);
-            var availableActivities = PackageManager.QueryIntentActivities(intent, PackageInfoFlags.MatchDefaultOnly);
-
-            if (availableActivities != null && availableActivities.Count > 0)
-            {
-                var dir = new Java.IO.File(
-                    Android.OS.Environment.GetExternalStoragePublicDirectory(
-                    Android.OS.Environment.DirectoryPictures), "CameraAppDemo");
-
-                if (!dir.Exists())
-                {
-                    dir.Mkdirs();
-                }
-
-                var file = new Java.IO.File(dir, String.Format("myPhoto{0}.jpg", Guid.NewGuid()));
-                var uri = Android.Net.Uri.FromFile(file);
-                _imagePath = file.AbsolutePath;
-                intent.PutExtra(MediaStore.ExtraOutput, uri);
-                StartActivityForResult(intent, ImageCaptureRequestCode);
-
-
-            }
         }
 
         protected override void OnSaveInstanceState(Bundle outState)
@@ -134,7 +100,41 @@ namespace Challenge.UI
             outState.PutString(ImagePathKey, _imagePath);
         }
 
-        private void OnCompletedAnsycStuff(Task<string[]> task, ProgressDialog dialog)
+        protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
+        {
+            base.OnActivityResult(requestCode, resultCode, data);
+            if (requestCode == ImageCaptureRequestCode
+                && resultCode == Result.Ok)
+            {
+                DecodeImage(_imagePath);
+            }
+        }
+
+        private void CaptureImage()
+        {
+            var intent = new Intent(MediaStore.ActionImageCapture);
+            var availableActivities = PackageManager.QueryIntentActivities(intent, PackageInfoFlags.MatchDefaultOnly);
+
+            if (availableActivities != null && availableActivities.Count > 0)
+            {
+                var dir = new JavaFile(
+                    Android.OS.Environment.GetExternalStoragePublicDirectory(
+                    Android.OS.Environment.DirectoryPictures), "CameraAppDemo");
+
+                if (!dir.Exists())
+                {
+                    dir.Mkdirs();
+                }
+
+                var file = new JavaFile(dir, String.Format("{0}.jpg", Guid.NewGuid()));
+                var uri = AndroidUri.FromFile(file);
+                _imagePath = file.AbsolutePath;
+                intent.PutExtra(MediaStore.ExtraOutput, uri);
+                StartActivityForResult(intent, ImageCaptureRequestCode);
+            }
+        }
+
+        private void OnCompleteAsnycSubmit(Task<List<string>> task, ProgressDialog dialog)
         {
             RunOnUiThread(
                 () =>
@@ -150,13 +150,14 @@ namespace Challenge.UI
                     }
                     else if (task.IsCompleted)
                     {
-                        var formattedAnswers = string.Format(
-                            "Question: {0}{1}Answer: {2}", task.Result[0], System.Environment.NewLine, task.Result[1]);
-                        var answerDialog = new AlertDialog.Builder(this);
-                        answerDialog.SetTitle("Q & A");
-                        answerDialog.SetMessage(formattedAnswers);
-                        answerDialog.Create()
-                                    .Show();
+                        var question = task.Result[0];
+                        var answer = task.Result[1];
+
+                        var resultIntent = new Intent(this, typeof(ResultScreen));
+                        resultIntent.PutExtra(ResultScreen.QuestionKey, question);
+                        resultIntent.PutExtra(ResultScreen.AnswerKey, answer);
+
+                        StartActivity(resultIntent);    
                     }
                 });
         }
@@ -166,11 +167,10 @@ namespace Challenge.UI
             byte[] imageBytes = null;
             if (_imageBitmap != null)
             {
-
                 using (var stream = new MemoryStream())
                 {
                     _imageBitmap.Compress(
-                        Bitmap.CompressFormat.Png, 100, stream);
+                        Bitmap.CompressFormat.Jpeg, 50, stream);
                     imageBytes = stream.ToArray();
                 }
             }
@@ -189,32 +189,18 @@ namespace Challenge.UI
             dateButton.Text = e.Date.ToShortDateString();
         }
 
-        public void DecodeImage()
+        public void DecodeImage(string imagePath)
         {
             // Get the dimensions of the bitmap
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.InJustDecodeBounds = true;
-            BitmapFactory.DecodeFile(_imagePath, options);
-            int photoW = options.OutWidth;
-            int photoH = options.OutHeight;
+            var options = new BitmapFactory.Options { InJustDecodeBounds = true };
+            BitmapFactory.DecodeFile(imagePath, options);
 
-            // Decode the image file into a Bitmap sized to fill the View
             options.InJustDecodeBounds = false;
             options.InSampleSize = 2;
             options.InPurgeable = true;
 
-            _imageBitmap = BitmapFactory.DecodeFile(_imagePath, options);
+            _imageBitmap = BitmapFactory.DecodeFile(imagePath, options);
             ImageViewer.SetImageBitmap(_imageBitmap);
-        }
-
-        protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
-        {
-            base.OnActivityResult(requestCode, resultCode, data);
-            if (requestCode == ImageCaptureRequestCode
-                && resultCode == Result.Ok)
-            {
-                DecodeImage();
-            }
         }
     }
 }

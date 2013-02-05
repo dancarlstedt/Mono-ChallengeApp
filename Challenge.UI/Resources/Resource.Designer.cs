@@ -46,6 +46,9 @@ namespace Challenge.UI
 		public partial class Id
 		{
 			
+			// aapt resource value: 0x7f050007
+			public const int answer = 2131034119;
+			
 			// aapt resource value: 0x7f050000
 			public const int customer_id = 2131034112;
 			
@@ -57,6 +60,12 @@ namespace Challenge.UI
 			
 			// aapt resource value: 0x7f050004
 			public const int image_viewer = 2131034116;
+			
+			// aapt resource value: 0x7f050005
+			public const int linearLayout1 = 2131034117;
+			
+			// aapt resource value: 0x7f050006
+			public const int question = 2131034118;
 			
 			// aapt resource value: 0x7f050003
 			public const int submit_button = 2131034115;
@@ -71,6 +80,9 @@ namespace Challenge.UI
 			
 			// aapt resource value: 0x7f030000
 			public const int Main = 2130903040;
+			
+			// aapt resource value: 0x7f030001
+			public const int Result = 2130903041;
 			
 			private Layout()
 			{

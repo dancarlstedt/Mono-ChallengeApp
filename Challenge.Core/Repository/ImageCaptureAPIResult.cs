@@ -9,5 +9,6 @@ namespace Challenge.Core
     public class ImageCaptureAPIResult
     {
         public string Message { get; set; }
+
     }
 }
